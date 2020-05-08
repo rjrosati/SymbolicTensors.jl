@@ -1,5 +1,5 @@
 module SymbolicTensors
 
-greet() = print("Hello World!")
+include("tensor_classes.jl")
 
-end # module
+end
