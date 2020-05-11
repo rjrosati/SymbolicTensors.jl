@@ -52,7 +52,7 @@ TensorHead(name::AbstractString,index_types::AbstractArray{TensorIndexType},symm
 TensorHead(name::AbstractString,index_types::AbstractArray{TensorIndexType})::TensorHead = tensor.TensorHead(name,index_types)
 TensorHead(name::Symbol,index_types::AbstractArray{TensorIndexType},symmetry::TensorSymmetry)::TensorHead = tensor.TensorHead(name,index_types,symmetry)
 TensorHead(name::Symbol,index_types::AbstractArray{TensorIndexType})::TensorHead = tensor.TensorHead(name,index_types)
-(t::TensorHead)(ics::TensorIndex...) = t.__pyobject__(ics)
+(t::TensorHead)(ics::TensorIndex...) = t.__pyobject__(ics...)
 
 
 TensorIndexType(name::AbstractString,dummy_fmt::AbstractString,dim::Int,metric_name::AbstractString)::TensorIndexType = tensor.TensorIndexType(name,dummy_fmt=dummy_fmt,dim,metric_name)
