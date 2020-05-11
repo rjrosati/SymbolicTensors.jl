@@ -1,6 +1,6 @@
 # SymbolicTensors
 
-[![Build Status](https://travis-ci.com/rjrosati/SymbolicTensors.jl.svg?branch=master)](https://travis-ci.com/rjrosati/SymbolicTensors.jl)
+[![Build Status](https://travis-ci.com/rjrosati/SymbolicTensors.jl.svg?token=zMDX3GmCZbdBcf9JWMdp&branch=master)](https://travis-ci.com/rjrosati/SymbolicTensors.jl)
 [![Codecov](https://codecov.io/gh/rjrosati/SymbolicTensors.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/rjrosati/SymbolicTensors.jl)
 
 Many numerical tensor manipulation packages exist (e.g. `Einsum.jl`), but treating tensors at a purely numeric level throws away a lot of potential optimizations.
