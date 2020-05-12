@@ -71,13 +71,18 @@ end
 macro heads(IT::AbstractArray{TensorIndexType},xs...)
     hs = []
     for x in xs
-        push!(hs,TensorHead(x,IT))
+        push!(hs,:(TensorHead(x,IT)))
     end
     return hs
 end
 
-macro indices(TIT::TensorIndexType,x...)
-
+macro indices(xs...)
+    ret = Expr(:block)
+    TIT = xs[1]
+    for x in xs[2:end]
+        push!(ret.args,:($(esc(x)) = TensorIndex($(string(x)),$(esc(TIT)))))
+    end
+    return ret
 end
 
 end
