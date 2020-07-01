@@ -11,6 +11,35 @@ TensorIndexType(name::Symbol,dummy_name::Symbol,dim::Int,metric_name::Symbol)::T
 
 
 ## Eg. A.norm() where A = [x 1; 1 x], say
+function Base.getproperty(A::IndexedTensor, k::Symbol)
+    if k == :head
+        m = getproperty(PyCall.PyObject(A),k)
+        return convert(TensorHead,m)
+    elseif k == :indices
+        m = getproperty(PyCall.PyObject(A),k)
+        return convert(Array{TensorIndex},m)
+    elseif k == :free
+        m = getproperty(PyCall.PyObject(A),k)
+        return convert(Array{Tuple{TensorIndex,Int}},m)
+    elseif k == :free_indices
+        m = pycall(getproperty(PyCall.PyObject(A),:get_free_indices),Array{TensorIndex})
+        return m
+    elseif k in fieldnames(typeof(A))
+        return getfield(A,k)
+    # else error?
+    end
+end
+
+function Base.getproperty(A::T, k::Symbol) where {T <: Tensor}
+    if k == :free
+        m = getproperty(PyCall.PyObject(A),k)
+        return convert(Array{Tuple{TensorIndex,Int}},m)
+    elseif k in fieldnames(typeof(A))
+        return getfield(A,k)
+    # else error?
+    end
+end
+
 function Base.getproperty(A::TensorIndexType, k::Symbol)
     if k == :delta || k == :metric
         m = getproperty(PyCall.PyObject(A),k)

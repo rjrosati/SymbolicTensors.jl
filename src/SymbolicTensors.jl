@@ -3,7 +3,7 @@ module SymbolicTensors
 using SymPy
 using PyCall
 
-import SymPy: SymbolicObject,Sym
+import SymPy: SymbolicObject,Sym,diff
 
 import Base: show
 import Base: convert, promote_rule
@@ -14,15 +14,14 @@ import Base.iterate
 import Base: +, -, *, /, //, \, ^
 
 export TensorIndexType, tensor_indices, TensorIndex, TensorHead
+export IndexedTensor, TensAdd, TensMul
 export TensorSymmetry
 #export @heads,@indices
 export @indices
 export tensor
+export diff
 
-struct Tensor <: SymbolicObject end
-struct TensorHead <: SymbolicObject
-    __pyobject__::PyCall.PyObject
-end
+abstract type Tensor <: SymbolicObject end
 struct TensorIndex <: SymbolicObject
     __pyobject__::PyCall.PyObject
 end
@@ -30,6 +29,18 @@ struct TensorIndexType <: SymbolicObject
     __pyobject__::PyCall.PyObject
 end
 struct TensorSymmetry <: SymbolicObject
+    __pyobject__::PyCall.PyObject
+end
+struct TensorHead <: SymbolicObject
+    __pyobject__::PyCall.PyObject
+end
+struct TensMul <: Tensor
+    __pyobject__::PyCall.PyObject
+end
+struct TensAdd <: Tensor
+    __pyobject__::PyCall.PyObject
+end
+struct IndexedTensor <: Tensor
     __pyobject__::PyCall.PyObject
 end
 
