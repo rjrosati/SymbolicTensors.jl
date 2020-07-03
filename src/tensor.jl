@@ -17,6 +17,18 @@ function Base.getproperty(A::TensorHead, k::Symbol)
     end
 end
 
+function Base.getproperty(A::TensMul, k::Symbol)
+    if k == :coeff
+        m = getproperty(PyCall.PyObject(A),k)
+        return m
+    elseif k == :nocoeff
+        m = getproperty(PyCall.PyObject(A),k)
+        return convert(IndexedTensor,m)
+    elseif k in fieldnames(typeof(A))
+        return getfield(A,k)
+    # else error?
+    end
+end
 
 ## Eg. A.norm() where A = [x 1; 1 x], say
 function Base.getproperty(A::TensorSymmetry, k::Symbol)
@@ -27,19 +39,50 @@ function Base.getproperty(A::TensorSymmetry, k::Symbol)
         convert(TensorSymmetry,M1)
     end
 end
+scalar_name = "ts"
+scalar_index = 1
+function get_scalar()
+    global scalar
+    symb = symbols(scalar_name * string(scalar_index),positive=true)
+    scalar_index += 1
+    return symb
+end
+
 
 TensAdd(s::TensAdd) = s
 TensMul(s::TensMul) = s
 function terms(s::T) where T <: Tensor
     sp = getproperty(PyCall.PyObject(s),:split)
-    return IndexedTensor[ x for x in pycall(sp,Array{IndexedTensor})]
+    ret = []
+    for x in pycall(sp,PyCall.PyObject)
+        if x.__class__.__name__ == "TensMul"
+            push!(ret,convert(TensMul,x))
+        else
+            push!(ret,convert(IndexedTensor,x))
+        end
+    end
+    return ret
 end
-function Base.:+(A::T ,B::T) where {T <: Tensor}
-    pyexp = convert(TensAdd,A.__pyobject__+B.__pyobject__)
-    return pyexp
+function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Tensor}
+    pyexp =  A.__pyobject__+B.__pyobject__
+    if pyexp.__class__.__name__ == "TensMul"
+        return convert(TensMul,pyexp)
+    else
+        return convert(TensAdd,pyexp)
+    end
 end
-function Base.:*(A::T ,B::T) where {T <: Tensor}
-    return convert(TensMul,A.__pyobject__*B.__pyobject__)
+function Base.:*(A::T ,B::U) where {T <: Tensor, U <: Tensor}
+    pyexp = A.__pyobject__*B.__pyobject__
+    inds = pycall(getproperty(pyexp,:get_free_indices),Array{TensorIndex})
+    if length(inds) == 0
+        return TensScalar(pyexp,get_scalar())
+    else
+        return convert(TensMul,pyexp)
+    end
+end
+function Base.:*(A::T ,B::U) where {T <: Real, U <: Tensor}
+    pyexp = A*B.__pyobject__
+    return convert(TensMul,pyexp)
 end
 
 macro heads(IT::AbstractArray{TensorIndexType},xs...)

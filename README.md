@@ -16,3 +16,4 @@ Often, it's possible to exploit the symmetries of a problem to dramatically redu
 * alias bp_canon to something
 * Derivatives!!!
 * documentation
+* make TensScalar work

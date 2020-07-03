@@ -14,7 +14,7 @@ import Base.iterate
 import Base: +, -, *, /, //, \, ^
 
 export TensorIndexType, tensor_indices, TensorIndex, TensorHead
-export IndexedTensor, TensAdd, TensMul
+export IndexedTensor, TensAdd, TensMul, TensScalar
 export TensorSymmetry
 #export @heads,@indices
 export @indices
@@ -34,6 +34,12 @@ end
 struct TensorHead <: SymbolicObject
     __pyobject__::PyCall.PyObject
 end
+
+struct TensScalar <: Tensor
+    __pyobject__::PyCall.PyObject;
+    expr::Sym;
+end
+
 struct TensMul <: Tensor
     __pyobject__::PyCall.PyObject
 end
