@@ -42,7 +42,7 @@ end
 scalar_name = "ts"
 scalar_index = 1
 function get_scalar()
-    global scalar
+    global scalar_name,scalar_index
     symb = symbols(scalar_name * string(scalar_index),positive=true)
     scalar_index += 1
     return symb
