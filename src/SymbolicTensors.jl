@@ -3,7 +3,7 @@ module SymbolicTensors
 using SymPy
 using PyCall
 
-import SymPy: SymbolicObject,Sym,diff
+import SymPy: SymbolicObject,Sym,diff,jprint
 
 import Base: show
 import Base: convert, promote_rule
@@ -11,7 +11,7 @@ import Base: getproperty
 import Base: hash, ==
 import Base: length, size
 import Base.iterate
-import Base: +, -, *, /, //, \, ^
+import Base: +, -, *, /, //, \, ^, log
 
 export TensorIndexType, tensor_indices, TensorIndex, TensorHead
 export IndexedTensor, TensAdd, TensMul, TensScalar
@@ -36,8 +36,9 @@ struct TensorHead <: SymbolicObject
 end
 
 struct TensScalar <: Tensor
-    __pyobject__::PyCall.PyObject;
+    var::Sym;
     expr::Sym;
+    __pyobject__::PyCall.PyObject;
 end
 
 struct TensMul <: Tensor

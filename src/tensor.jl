@@ -48,6 +48,54 @@ function get_scalar()
     return symb
 end
 
+function Base.:+(A::Number, B::TensScalar)
+    return TensScalar(B.var,B.expr+A,B.__pyobject__)
+end
+function Base.:-(A::Number, B::TensScalar)
+    return TensScalar(B.var,B.expr-A,B.__pyobject__)
+end
+function Base.:/(A::Number, B::TensScalar)
+    return TensScalar(B.var,A/B.expr,B.__pyobject__)
+end
+function Base.:/(A::TensScalar,B::Number)
+    return TensScalar(A.var,A.expr/B,A.__pyobject__)
+end
+function Base.:*(A::TensScalar,B::Number)
+    return TensScalar(A.var,A.expr*B,A.__pyobject__)
+end
+
+function Base.:*(A::TensScalar,B::T) where {T <: Tensor}
+    return Base.:*(B,A)
+end
+function Base.:*(B::T,A::TensScalar) where {T <:Tensor}
+    return TensMul(A.expr*B)
+end
+function Base.:^(A::TensScalar,B::Number)
+    return TensScalar(A.var,A.expr^B,A.__pyobject__)
+end
+function Base.:^(A::TensScalar,B::Integer)
+    return TensScalar(A.var,A.expr^B,A.__pyobject__)
+end
+function Base.:^(A::Number,B::TensScalar)
+    return TensScalar(B.var,A^B.expr,B.__pyobject__)
+end
+function Base.log(B::TensScalar)
+    return TensScalar(B.var,log(B.expr),B.__pyobject__)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", t::TensMul)
+    Base.show(io,::MIME"text/plain",convert(t.__pyobject__,SymbolicObject))
+    print(io, sympy.pretty(t.expr))
+    println(io,"")
+    println(io,"")
+    print(io, sympy.pretty(sympy.Eq(t.var,t.__pyobject__)))
+    return nothing
+function Base.show(io::IO,  t::TensScalar)
+    show(io,t.expr)
+    print(io,",")
+    print(io, jprint(sympy.Eq(t.var,t.__pyobject__)))
+    return nothing
+end
 
 TensAdd(s::TensAdd) = s
 TensMul(s::TensMul) = s
@@ -63,6 +111,7 @@ function terms(s::T) where T <: Tensor
     end
     return ret
 end
+
 function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Tensor}
     pyexp =  A.__pyobject__+B.__pyobject__
     if pyexp.__class__.__name__ == "TensMul"
@@ -72,10 +121,12 @@ function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Tensor}
     end
 end
 function Base.:*(A::T ,B::U) where {T <: Tensor, U <: Tensor}
+    global scalars
     pyexp = A.__pyobject__*B.__pyobject__
     inds = pycall(getproperty(pyexp,:get_free_indices),Array{TensorIndex})
     if length(inds) == 0
-        return TensScalar(pyexp,get_scalar())
+        x = get_scalar()
+        return TensScalar(x,x,pyexp)
     else
         return convert(TensMul,pyexp)
     end
