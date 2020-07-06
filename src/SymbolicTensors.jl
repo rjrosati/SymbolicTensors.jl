@@ -17,9 +17,10 @@ export TensorIndexType, tensor_indices, TensorIndex, TensorHead
 export IndexedTensor, TensAdd, TensMul, TensScalar
 export TensorSymmetry
 #export @heads,@indices
-export @indices
+export @indices, @heads
 export tensor
 export diff
+export canon_bp
 
 abstract type Tensor <: SymbolicObject end
 struct TensorIndex <: SymbolicObject
@@ -35,11 +36,11 @@ struct TensorHead <: SymbolicObject
     __pyobject__::PyCall.PyObject
 end
 
-struct TensScalar <: Tensor
-    var::Sym;
-    expr::Sym;
-    __pyobject__::PyCall.PyObject;
-end
+#struct TensScalar <: Tensor
+#    var::Sym;
+#    expr::Sym;
+#    __pyobject__::PyCall.PyObject;
+#end
 
 struct TensMul <: Tensor
     __pyobject__::PyCall.PyObject

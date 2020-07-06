@@ -4,9 +4,9 @@ TensorIndex(name::AbstractString,tensor_index_type::TensorIndexType,is_up::Bool=
 TensorIndex(name::Symbol,tensor_index_type::TensorIndexType,is_up::Bool=true)::TensorIndex = tensor.TensorIndex(name,tensor_index_type,is_up)
 -( x::TensorIndex ) = TensorIndex(x.__neg__())
 
-TensorIndexType(name::AbstractString,dummy_fmt::AbstractString,dim::Int,metric_name::AbstractString)::TensorIndexType = tensor.TensorIndexType(name,dummy_fmt=dummy_fmt,dim=dim,metric_name=metric_name)
-TensorIndexType(name::AbstractString,dummy_fmt::AbstractString,dim::Int)::TensorIndexType = tensor.TensorIndexType(name,dummy_fmt=dummy_fmt,dim=dim)
-TensorIndexType(name::AbstractString,dummy_fmt::AbstractString)::TensorIndexType = tensor.TensorIndexType(name,dummy_fmt=dummy_fmt)
+TensorIndexType(name::AbstractString,dummy_name::AbstractString,dim::Int,metric_name::AbstractString)::TensorIndexType = tensor.TensorIndexType(name,dummy_name=dummy_name,dim=dim,metric_name=metric_name)
+TensorIndexType(name::AbstractString,dummy_name::AbstractString,dim::Int)::TensorIndexType = tensor.TensorIndexType(name,dummy_name=dummy_name,dim=dim)
+TensorIndexType(name::AbstractString,dummy_name::AbstractString)::TensorIndexType = tensor.TensorIndexType(name,dummy_name=dummy_name)
 TensorIndexType(name::Symbol,dummy_name::Symbol,dim::Int,metric_name::Symbol)::TensorIndexType = tensor.TensorIndexType(string(name),string(dummy_name),dim,string(metric_name))
 
 
