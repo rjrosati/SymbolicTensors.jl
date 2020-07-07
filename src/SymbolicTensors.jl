@@ -20,7 +20,7 @@ export TensorSymmetry
 export @indices, @heads
 export tensor
 export diff
-export canon_bp
+export canon_bp, contract_metric
 
 abstract type Tensor <: SymbolicObject end
 struct TensorIndex <: SymbolicObject
@@ -59,6 +59,19 @@ function __init__()
     copy!(tensor,PyCall.pyimport_conda("sympy.tensor.tensor","sympy"))
     #pytype_mapping(tensor.TensorSymmetry,TensorSymmetry)
 #    copy!(toperations,PyCall.pyimport_conda("sympy.tensor.toperations","sympy"))
+end
+
+function sympy_type_convert(pyexp)
+    cname = pyexp.__class__.__name__
+    if cname == "TensMul"
+        return convert(TensMul,pyexp)
+    elseif cname == "TensAdd"
+        return convert(TensAdd,pyexp)
+    elseif cname == "Tensor"
+        return convert(IndexedTensor,pyexp)
+    else
+        return pyexp
+    end
 end
 
 include("tensor.jl")

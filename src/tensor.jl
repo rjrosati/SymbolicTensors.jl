@@ -143,7 +143,7 @@ function terms(s::T) where T <: Tensor
     return ret
 end
 
-function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Number}
+function Base.:+(A::T ,B::U) where {T <: Tensor, U <: SymbolicObject}
     pyexp =  A.__pyobject__+B.__pyobject__
     if pyexp.__class__.__name__ == "TensMul"
         return convert(TensMul,pyexp)
@@ -151,7 +151,7 @@ function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Number}
         return convert(TensAdd,pyexp)
     end
 end
-function Base.:-(A::T ,B::U) where {T <: Tensor, U <: Number}
+function Base.:-(A::T ,B::U) where {T <: Tensor, U <: SymbolicObject}
     pyexp =  A.__pyobject__-B.__pyobject__
     if pyexp.__class__.__name__ == "TensMul"
         return convert(TensMul,pyexp)
@@ -182,6 +182,10 @@ function Base.:*(B::U,A::T) where {T <: Sym, U <: Tensor}
     pyexp = A*B.__pyobject__
     return convert(TensMul,pyexp)
 end
+function Base.:/(B::U,A::T) where {T <: Number, U <: Tensor}
+    pyexp = B.__pyobject__/A
+    return sympy_type_convert(pyexp)
+end
 
 macro heads(IT::AbstractArray{TensorIndexType},xs...)
     hs = []
@@ -192,70 +196,40 @@ macro heads(IT::AbstractArray{TensorIndexType},xs...)
 end
 
 function canon_bp(s::Sym)
-    global scalar_exprs,scalar_names
-    sc = get_scalars(s)
-    if length(sc) > 0
-        cbp = canon_bp(scalar_exprs[only(sc)])
-        scalar_exprs[only(sc)] = cbp
-        if typeof(cbp) != TensMul
-            return cbp
-        else
-            scalar_names[cbp] = only(sc)
-            return s
-        end
-    end
-    s
-end
-function contract_metric(s::Sym)
-    sc = get_scalars(s)
-    if length(sc) > 0
-        contract_metric(scalar_exprs[only(sc)])
-        return s
-    end
+    #global scalar_exprs,scalar_names
+    #sc = get_scalars(s)
+    #if length(sc) > 0
+    #    cbp = canon_bp(scalar_exprs[only(sc)])
+    #    scalar_exprs[only(sc)] = cbp
+    #    println(cbp)
+    #    if typeof(cbp) != TensMul
+    #        return cbp
+    #    else
+    #        scalar_names[cbp] = only(sc)
+    #        return s
+    #    end
+    #end
     s
 end
 
 function canon_bp(t::T) where T <: Tensor
-    global scalar_exprs, scalar_names
-    sc = get_scalars(t)
-    if length(sc) > 0
-        for s in sc
-            cbp = canon_bp(s)
-            scalar_exprs[s] = cbp
-            scalar_names[cbp] = s
-        end
-    end
+    #global scalar_exprs, scalar_names
+    #sc = get_scalars(t)
+    #if length(sc) > 0
+    #    for s in sc
+    #        println(s,"tens")
+    #        cbp = canon_bp(s)
+    #        scalar_exprs[s] = cbp
+    #        scalar_names[cbp] = s
+    #    end
+    #end
     pyexp = tensor.canon_bp(t)
-    cname = pyexp.__class__.__name__
-    if cname == "TensMul"
-        return convert(TensMul,pyexp)
-    elseif cname == "TensAdd"
-        return convert(TensAdd,pyexp)
-    elseif cname == "Tensor"
-        return convert(IndexedTensor,pyexp)
-    else
-        return pyexp
-    end
+    return sympy_type_convert(pyexp)
 end
-function contract_metric(t::T) where T <: Tensor
-    global scalar_exprs, scalar_names
-    sc = get_scalars(t)
-    if length(sc) > 0
-        for s in sc
-            cm = tensor.contract_metric(s)
-            scalar_exprs[s] = cm
-            scalar_names[cm] = s
-        end
-    end
-    pyexp = tensor.contract_metric(t)
-    cname = pyexp.__class__.__name__
-    if cname == "TensMul"
-        return convert(TensMul,pyexp)
-    elseif cname == "TensAdd"
-        return convert(TensAdd,pyexp)
-    elseif cname == "Tensor"
-        return convert(IndexedTensor,pyexp)
-    else
-        return pyexp
-    end
+function contract_metric(s::Sym,metric::TensorHead)
+    s
+end
+function contract_metric(t::T,metric::TensorHead) where T <: Tensor
+    pyexp = tensor.contract_metric(t,metric)
+    return sympy_type_convert(pyexp)
 end
