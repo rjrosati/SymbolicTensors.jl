@@ -36,9 +36,11 @@ function diff(A::T, B::U) where {T <: Tensor,U <: Tensor}
                 if typeof(t) == TensMul
                     coeff = t.coeff
                     sc = get_scalars(t.coeff)
-                    if length(sc) > 0
-                        s = only(sc)
+                    if length(sc) == 1
+                        s = sc[1]
                         coeff = diff(coeff,s) * diff(scalar_exprs[s],B)
+                    elseif length(sc) > 0
+                        error("Multiple scalars not implemented")
                     end
                     push!(ans, coeff * prod(terms[1:l .!= i])*diff(t.nocoeff,B))
                 else
@@ -49,9 +51,11 @@ function diff(A::T, B::U) where {T <: Tensor,U <: Tensor}
         else
             dcoeff = A.coeff
             sc = get_scalars(A.coeff)
-            if length(sc) > 0
-                s = only(sc)
+            if length(sc) == 1
+                s = sc[1]
                 dcoeff = diff(dcoeff,s) * diff(scalar_exprs[s],B)
+            elseif length(sc) > 0
+                error("Multiple scalars not implemented")
             end
             return dcoeff * A.nocoeff + A.coeff * diff(A.nocoeff,B)
         end

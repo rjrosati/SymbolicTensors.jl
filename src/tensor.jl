@@ -201,10 +201,13 @@ end
 function scalarIsEqual(a::SymPy.Sym,b::SymPy.Sym,metric::TensorHead)
     sca = get_scalars(a)
     scb = get_scalars(b)
-    if length(sca) > 0 && length(scb) > 0
-        exa = canon_bp(contract_metric(scalar_exprs[only(sca)],metric))
-        exb = canon_bp(contract_metric(scalar_exprs[only(scb)],metric))
+    if 2 > length(sca) > 0 && 2 > length(scb) > 0
+        exa = canon_bp(contract_metric(scalar_exprs[sca[1]],metric))
+        exb = canon_bp(contract_metric(scalar_exprs[scb[1]],metric))
         return exa == exb
+    elseif length(sca) > 0 || length(scb) > 0
+        error("Multiple scalars, not implemented yet.")
+        return
     else
         return sympy.Eq(a,b) == True
     end
@@ -256,7 +259,7 @@ function contract_metric(s::Sym,metric::TensorHead)
     subs = Dict()
     if length(sc) > 0
         for ss in sc
-            subs[ss] = contract_metric(scalar_exprs[only(sc)],metric)
+            subs[ss] = contract_metric(scalar_exprs[ss],metric)
         end
     end
     pyexp = tensor.contract_metric(s,metric)
