@@ -55,11 +55,11 @@ end
 
 const tensor = PyCall.PyNULL()
 const toperations = PyCall.PyNULL()
-const get_tsymmetry = PyCall.PyNULL()
+const get_tsymmetry = convert(TensorSymmetry,PyCall.PyNULL())
 
 function __init__()
     copy!(tensor,PyCall.pyimport_conda("sympy.tensor.tensor","sympy"))
-    copy!(get_tsymmetry,tensor.TensorSymmetry)
+    copy!(get_tsymmetry.__pyobject__,tensor.TensorSymmetry)
     #pytype_mapping(tensor.TensorSymmetry,TensorSymmetry)
 #    copy!(toperations,PyCall.pyimport_conda("sympy.tensor.toperations","sympy"))
 end
