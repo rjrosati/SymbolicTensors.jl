@@ -205,19 +205,20 @@ macro heads(IT::AbstractArray{TensorIndexType},xs...)
 end
 
 function canon_bp(s::Sym)
-    #global scalar_exprs,scalar_names
     sc = get_scalars(s)
+    subs = Dict()
     if length(sc) > 0
-        cbp = canon_bp(scalar_exprs[only(sc)])
-        #scalar_exprs[only(sc)] = cbp
-        if typeof(cbp) != TensMul
-            return cbp
-        else
-            #scalar_names[cbp] = only(sc)
-            return s
+        for ss in sc
+            subs[ss] = canon_bp(scalar_exprs[ss])
         end
     end
-    s
+    pyexp = tensor.canon_bp(s)
+    for k in keys(subs)
+        if typeof(subs[k]) != TensMul
+            pyexp = pyexp.subs(k,subs[k])
+        end
+    end
+    return sympy_type_convert(pyexp+0)
 end
 
 function canon_bp(t::T) where T <: Tensor
@@ -229,26 +230,45 @@ function canon_bp(t::T) where T <: Tensor
         end
     end
     pyexp = tensor.canon_bp(t)
-    println(subs)
     for k in keys(subs)
         if typeof(subs[k]) != TensMul
             pyexp = pyexp.subs(k,subs[k])
         end
     end
-    return sympy_type_convert(pyexp)
+    return sympy_type_convert(pyexp+0)
 end
 function contract_metric(s::Sym,metric::TensorHead)
-    global scalar_exprs, scalar_names
     sc = get_scalars(s)
+    subs = Dict()
     if length(sc) > 0
         for ss in sc
-            return contract_metric(scalar_exprs[ss])
+            subs[ss] = contract_metric(scalar_exprs[only(sc)],metric)
         end
-    else
-        return s
     end
+    pyexp = tensor.contract_metric(s,metric)
+    for k in keys(subs)
+#        println(k)
+#        println(subs[k])
+#        println(typeof(subs[k]))
+        if typeof(subs[k]) != TensMul
+            pyexp = pyexp.subs(k,subs[k])
+        end
+    end
+    return sympy_type_convert(pyexp+0)
 end
 function contract_metric(t::T,metric::TensorHead) where T <: Tensor
+    sc = get_scalars(t)
+    subs = Dict()
+    if length(sc) > 0
+        for ss in sc
+            subs[ss] = contract_metric(scalar_exprs[ss],metric)
+        end
+    end
     pyexp = tensor.contract_metric(t,metric)
-    return sympy_type_convert(pyexp)
+    for k in keys(subs)
+        if typeof(subs[k]) != TensMul
+            pyexp = pyexp.subs(k,subs[k])
+        end
+    end
+    return sympy_type_convert(pyexp+0)
 end

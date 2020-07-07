@@ -12,7 +12,9 @@ Often, it's possible to exploit the symmetries of a problem to dramatically redu
 * Nicer errors
 * testing coverage
 * add conversion to ITensors or equivalent
-* get TensorSymmetry typed correctly and working
-* Derivatives!!! (support for scalar)
+* TensorSymmetry initialization
 * documentation
-* fix bug in show after canon_bp
+## Rough done
+* Derivatives!!! (support for scalar)
+## known bugs
+* self-contracted tensors aren't properly treated as scalars, but work fine without calling `contract_metric`
