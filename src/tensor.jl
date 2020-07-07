@@ -128,6 +128,7 @@ end
 TensAdd(s::TensAdd) = s
 TensMul(s::TensMul) = s
 (t::TensMul)(ics::TensorIndex...) = convert(TensMul,t.__pyobject__(ics...))
+(t::TensAdd)(ics::TensorIndex...) = convert(TensAdd,t.__pyobject__(ics...))
 function terms(s::T) where T <: Tensor
     sp = getproperty(PyCall.PyObject(s),:split)
     ret = []
@@ -143,19 +144,11 @@ end
 
 function Base.:+(A::T ,B::U) where {T <: Tensor, U <: SymbolicObject}
     pyexp =  A.__pyobject__+B.__pyobject__
-    if pyexp.__class__.__name__ == "TensMul"
-        return convert(TensMul,pyexp)
-    else
-        return convert(TensAdd,pyexp)
-    end
+    return sympy_type_convert(pyexp)
 end
 function Base.:-(A::T ,B::U) where {T <: Tensor, U <: SymbolicObject}
     pyexp =  A.__pyobject__-B.__pyobject__
-    if pyexp.__class__.__name__ == "TensMul"
-        return convert(TensMul,pyexp)
-    else
-        return convert(TensAdd,pyexp)
-    end
+    return sympy_type_convert(pyexp)
 end
 ## Eg. A.norm() where A = [x 1; 1 x], say
 function Base.getproperty(A::TensorSymmetry, k::Symbol)
@@ -194,6 +187,27 @@ end
 function Base.:/(B::U,A::T) where {T <: Number, U <: Tensor}
     pyexp = B.__pyobject__/A
     return sympy_type_convert(pyexp)
+end
+
+#function Base.isequal(a::SymPy.Sym,b::SymPy.Sym)
+#    sca = get_scalars(a)
+#    scb = get_scalars(b)
+#    if length(sca) > 0 && length(scb) > 0
+#        return scalar_exprs[only(sca)] == scalar_exprs[only(scb)]
+#    else
+#        return sympy.Eq(a,b) == true
+#    end
+#end
+function scalarIsEqual(a::SymPy.Sym,b::SymPy.Sym,metric::TensorHead)
+    sca = get_scalars(a)
+    scb = get_scalars(b)
+    if length(sca) > 0 && length(scb) > 0
+        exa = canon_bp(contract_metric(scalar_exprs[only(sca)],metric))
+        exb = canon_bp(contract_metric(scalar_exprs[only(scb)],metric))
+        return exa == exb
+    else
+        return sympy.Eq(a,b) == True
+    end
 end
 
 macro heads(IT::AbstractArray{TensorIndexType},xs...)

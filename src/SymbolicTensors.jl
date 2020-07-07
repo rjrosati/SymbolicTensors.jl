@@ -22,6 +22,7 @@ export tensor
 export diff
 export canon_bp, contract_metric
 export get_tsymmetry
+export scalarIsEqual
 
 abstract type Tensor <: SymbolicObject end
 struct TensorIndex <: SymbolicObject
@@ -74,6 +75,8 @@ function sympy_type_convert(pyexp)
         return convert(IndexedTensor,pyexp)
     elseif cname == "TensorSymmetry"
         return convert(TensorSymmetry,pyexp)
+    elseif cname == "Zero"
+        return 0
     else
         return pyexp
     end
