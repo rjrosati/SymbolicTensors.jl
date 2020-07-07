@@ -15,9 +15,10 @@ function Base.getproperty(A::IndexedTensor, k::Symbol)
     if k == :head
         m = getproperty(PyCall.PyObject(A),k)
         return convert(TensorHead,m)
-    elseif k == :indices
-        m = getproperty(PyCall.PyObject(A),k)
-        return convert(Array{TensorIndex},m)
+    #elseif k == :indices
+    #    m = getproperty(PyCall.PyObject(A),:indices)
+    #    println(m)
+    #    return convert(Array{TensorIndex},m)
     elseif k == :free
         m = getproperty(PyCall.PyObject(A),k)
         return convert(Array{Tuple{TensorIndex,Int}},m)

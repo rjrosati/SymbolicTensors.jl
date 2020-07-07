@@ -129,6 +129,7 @@ end
 
 TensAdd(s::TensAdd) = s
 TensMul(s::TensMul) = s
+(t::TensMul)(ics::TensorIndex...) = convert(TensMul,t.__pyobject__(ics...))
 function terms(s::T) where T <: Tensor
     sp = getproperty(PyCall.PyObject(s),:split)
     ret = []
@@ -142,7 +143,7 @@ function terms(s::T) where T <: Tensor
     return ret
 end
 
-function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Tensor}
+function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Number}
     pyexp =  A.__pyobject__+B.__pyobject__
     if pyexp.__class__.__name__ == "TensMul"
         return convert(TensMul,pyexp)
@@ -150,7 +151,7 @@ function Base.:+(A::T ,B::U) where {T <: Tensor, U <: Tensor}
         return convert(TensAdd,pyexp)
     end
 end
-function Base.:-(A::T ,B::U) where {T <: Tensor, U <: Tensor}
+function Base.:-(A::T ,B::U) where {T <: Tensor, U <: Number}
     pyexp =  A.__pyobject__-B.__pyobject__
     if pyexp.__class__.__name__ == "TensMul"
         return convert(TensMul,pyexp)
@@ -170,6 +171,14 @@ function Base.:*(A::T ,B::U) where {T <: Tensor, U <: Tensor}
     end
 end
 function Base.:*(A::T ,B::U) where {T <: Number, U <: Tensor}
+    pyexp = A*B.__pyobject__
+    return convert(TensMul,pyexp)
+end
+function Base.:*(A::T ,B::U) where {T <: Sym, U <: Tensor}
+    pyexp = A*B.__pyobject__
+    return convert(TensMul,pyexp)
+end
+function Base.:*(B::U,A::T) where {T <: Sym, U <: Tensor}
     pyexp = A*B.__pyobject__
     return convert(TensMul,pyexp)
 end

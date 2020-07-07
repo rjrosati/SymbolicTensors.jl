@@ -13,7 +13,6 @@ Often, it's possible to exploit the symmetries of a problem to dramatically redu
 * testing coverage
 * add conversion to ITensors or equivalent
 * get TensorSymmetry typed correctly and working
-* alias bp_canon to something
-* Derivatives!!!
+* Derivatives!!! (support for scalar)
 * documentation
-* make TensScalar work
+* fix bug in show after canon_bp

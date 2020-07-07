@@ -9,12 +9,19 @@ function diff(A::T, B::U) where {T <: Tensor,U <: Tensor}
     if typeof(A) == IndexedTensor
         if A.head == B.head
             i = B.free_indices[1]
-            if i in A.indices
+            if i in A.free_indices
                 error("What do we do here?")
             else
-                j = A.indices[1]
+                j = A.free_indices[1]
                 return A.head.index_types[1].metric(j,-i)
             end
+        else
+            if A.head == B.head.index_types[1].delta
+                return 0
+            end
+            println("Head1:", A.head)
+            println("Head2:", B.head)
+            error("Heads differ in a way not yet implemented")
         end
     elseif typeof(A) == TensAdd
         terms = SymbolicTensors.terms(A)
@@ -27,16 +34,28 @@ function diff(A::T, B::U) where {T <: Tensor,U <: Tensor}
             ans = []
             for (i,t) in enumerate(terms)
                 if typeof(t) == TensMul
-                    push!(ans, t.coeff * prod(terms[1:l .!= i])*diff(t.nocoeff,B))
+                    coeff = t.coeff
+                    sc = get_scalars(t.coeff)
+                    if length(sc) > 0
+                        s = only(sc)
+                        coeff = diff(coeff,s) * diff(scalar_exprs[s],B)
+                    end
+                    push!(ans, coeff * prod(terms[1:l .!= i])*diff(t.nocoeff,B))
                 else
                     push!(ans, prod(terms[1:l .!= i])*diff(t,B))
                 end
             end
             return sum(ans)
         else
-            return A.coeff * diff(A.nocoeff,B)
+            dcoeff = A.coeff
+            sc = get_scalars(A.coeff)
+            if length(sc) > 0
+                s = only(sc)
+                dcoeff = diff(dcoeff,s) * diff(scalar_exprs[s],B)
+            end
+            return dcoeff * A.nocoeff + A.coeff * diff(A.nocoeff,B)
         end
     else
-        error("Differentiation of $(typeof(A)) not implemented")
+        error("Differentiation of type $(typeof(A)) not implemented")
     end
 end
