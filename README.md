@@ -21,3 +21,4 @@ Often, it's possible to exploit the symmetries of a problem to dramatically redu
 * TensorSymmetry initialization
 ## known bugs
 * self-contracted tensors aren't properly treated as scalars, but work fine without calling `contract_metric`
+* occasional dummy index bugs in diff -- probably fixed now

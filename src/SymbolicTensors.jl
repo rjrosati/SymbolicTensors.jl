@@ -66,17 +66,21 @@ function __init__()
 end
 
 function sympy_type_convert(pyexp)
-    cname = pyexp.__class__.__name__
-    if cname == "TensMul"
-        return convert(TensMul,pyexp)
-    elseif cname == "TensAdd"
-        return convert(TensAdd,pyexp)
-    elseif cname == "Tensor"
-        return convert(IndexedTensor,pyexp)
-    elseif cname == "TensorSymmetry"
-        return convert(TensorSymmetry,pyexp)
-    elseif cname == "Zero"
-        return 0
+    if typeof(pyexp) in [Sym, PyObject]
+        cname = pyexp.__class__.__name__
+        if cname == "TensMul"
+            return convert(TensMul,pyexp)
+        elseif cname == "TensAdd"
+            return convert(TensAdd,pyexp)
+        elseif cname == "Tensor"
+            return convert(IndexedTensor,pyexp)
+        elseif cname == "TensorSymmetry"
+            return convert(TensorSymmetry,pyexp)
+        elseif cname == "Zero"
+            return 0
+        else
+            return pyexp
+        end
     else
         return pyexp
     end

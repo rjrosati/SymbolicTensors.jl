@@ -20,10 +20,10 @@ end
 function Base.getproperty(A::TensMul, k::Symbol)
     if k == :coeff
         m = getproperty(PyCall.PyObject(A),k)
-        return m
+        return sympy_type_convert(m)
     elseif k == :nocoeff
         m = getproperty(PyCall.PyObject(A),k)
-        return convert(IndexedTensor,m)
+        return sympy_type_convert(m)
     elseif k in fieldnames(typeof(A))
         return getfield(A,k)
     # else error?
@@ -133,11 +133,7 @@ function terms(s::T) where T <: Tensor
     sp = getproperty(PyCall.PyObject(s),:split)
     ret = []
     for x in pycall(sp,PyCall.PyObject)
-        if x.__class__.__name__ == "TensMul"
-            push!(ret,convert(TensMul,x))
-        else
-            push!(ret,convert(IndexedTensor,x))
-        end
+        push!(ret,sympy_type_convert(x))
     end
     return ret
 end
@@ -264,9 +260,6 @@ function contract_metric(s::Sym,metric::TensorHead)
     end
     pyexp = tensor.contract_metric(s,metric)
     for k in keys(subs)
-#        println(k)
-#        println(subs[k])
-#        println(typeof(subs[k]))
         if typeof(subs[k]) != TensMul
             pyexp = pyexp.subs(k,subs[k])
         end
