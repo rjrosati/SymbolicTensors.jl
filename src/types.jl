@@ -50,6 +50,16 @@ function sympy_type_convert(pyexp)
             return convert(Array{Sym},pyexp)
         elseif cname == "Zero"
             return 0
+        elseif cname == "Half"
+            return 1//2
+        elseif cname == "One"
+            return 1
+        elseif cname == "Rational"
+            return convert(Rational,pyexp)
+        elseif cname == "Integer"
+            return convert(Int,pyexp)
+        elseif cname == "Float"
+            return convert(Float64,pyexp)
         else
             return pyexp
         end

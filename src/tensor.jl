@@ -152,15 +152,7 @@ TensAdd(s::TensAdd) = s
 TensMul(s::TensMul) = s
 (t::TensMul)(ics::TensorIndex...) = convert(TensMul,t.__pyobject__(ics...))
 (t::TensAdd)(ics::TensorIndex...) = convert(TensAdd,t.__pyobject__(ics...))
-function terms(s::TensMul)
-    sp = getproperty(PyCall.PyObject(s),:split)
-    ret = []
-    for x in pycall(sp,PyCall.PyObject)
-        push!(ret,sympy_type_convert(x))
-    end
-    return ret
-end
-function terms(s::TensAdd)
+function terms(s::T) where T <: Union{TensAdd,TensMul}
     sp = getproperty(PyCall.PyObject(s),:args)
     ret = []
     for x in sp
@@ -222,12 +214,16 @@ function Base.:*(A::T ,B::U) where {T <: Number, U <: Tensor}
     pyexp = A*B.__pyobject__
     return convert(TensMul,pyexp)
 end
+function Base.:*(A::T ,B::U) where {T <: Tensor, U <: Number}
+    pyexp = B*A.__pyobject__
+    return convert(TensMul,pyexp)
+end
 function Base.:*(A::T ,B::U) where {T <: SymbolicObject, U <: Tensor}
     pyexp = A*B.__pyobject__
     return convert(TensMul,pyexp)
 end
-function Base.:*(B::U,A::T) where {T <: Number, U <: Tensor}
-    pyexp = A*B.__pyobject__
+function Base.:*(A::T ,B::U) where {T <: Tensor, U <: SymbolicObject}
+    pyexp = B*A.__pyobject__
     return convert(TensMul,pyexp)
 end
 function Base.:/(B::U,A::T) where {T <: Number, U <: Tensor}
@@ -248,10 +244,10 @@ end
 #        return sympy.Eq(a,b) == true
 #    end
 #end
-function scalarIsEqual(a::SymPy.Sym,b::SymPy.Sym,metric::TensorHead)
+function scalarIsEqual(a::U,b::T,metric::TensorHead) where {T <: Union{SymbolicObject,Tensor}, U <: Union{SymbolicObject,Tensor}}
     sca = get_scalars(a)
     scb = get_scalars(b)
-    if 2 > length(sca) > 0 && 2 > length(scb) > 0
+    if 2 > length(sca) && 2 > length(scb)
         exa = canon_bp(contract_metric(scalar_exprs[sca[1]],metric))
         exb = canon_bp(contract_metric(scalar_exprs[scb[1]],metric))
         return exa == exb

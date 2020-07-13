@@ -26,8 +26,15 @@ export canon_bp, contract_metric, factor
 export get_tsymmetry
 export scalarIsEqual
 export replace_with_arrays
-export cse
+export Quote
 
+
+
+include("types.jl")
+include("tensor.jl")
+include("indices.jl")
+include("derivatives.jl")
+include("quoting.jl")
 
 const tensor = PyCall.PyNULL()
 const toperations = PyCall.PyNULL()
@@ -39,11 +46,5 @@ function __init__()
     #pytype_mapping(tensor.TensorSymmetry,TensorSymmetry)
 #    copy!(toperations,PyCall.pyimport_conda("sympy.tensor.toperations","sympy"))
 end
-
-include("types.jl")
-include("tensor.jl")
-include("indices.jl")
-include("derivatives.jl")
-include("quoting.jl")
 
 end
