@@ -45,6 +45,9 @@ function Base.getproperty(A::TensorIndexType, k::Symbol)
     if k == :delta || k == :metric
         m = getproperty(PyCall.PyObject(A),k)
         return convert(TensorHead,m)
+    elseif k == :set_metric
+        m = getproperty(PyCall.PyObject(A),k)
+        return m
     elseif k in fieldnames(typeof(A))
         return getfield(A,k)
     # else error?

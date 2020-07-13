@@ -1,6 +1,10 @@
 # make diff work on tensors
 diff(A::Real, B::T) where {T <: Tensor} = 0
 
+## SymPy overrides to zero out Ints and Floats
+diff(::Int,::Sym...) = 0
+diff(::Float64,::Sym...) = 0
+
 function diff(A::IndexedTensor,B::IndexedTensor)
     if length(B.free_indices) > 1
         error("For now, can only differentiate wrt one free index.")
@@ -37,37 +41,27 @@ function diff(A::TensMul,B::IndexedTensor)
     end
     trms = terms(A)
     l = length(trms)
-    if l > 1
-        ans = []
-        for (i,t) in enumerate(trms)
-            if typeof(t) == TensMul
-                dcoeff = t.coeff
-                sc = get_scalars(t.coeff)
-                if length(sc) == 1
-                    s = sc[1]
-                    dcoeff = diff(dcoeff,s) * diff(scalar_exprs[s],B)
-                elseif length(sc) > 0
-                    error("Multiple scalars not implemented")
-                end
-                other = prod(trms[1:l .!= i])
-                push!(ans, other*(dcoeff * t.nocoeff + t.coeff*diff(t.nocoeff,B)))
+    ans = []
+    for (i,t) in enumerate(trms)
+        if typeof(t) == TensMul
+            dcoeff = t.coeff
+            sc = get_scalars(t.coeff)
+            if length(sc) == 1
+                s = sc[1]
+                dcoeff = diff(dcoeff,s) * diff(scalar_exprs[s],B)
+            elseif length(sc) > 0
+                error("Multiple scalars not implemented")
             else
-                dt = diff(t,B)
-                push!(ans, dt*prod(trms[1:l .!= i]))
+                dcoeff = diff(dcoeff,B)
             end
+            other = l>1 ? prod(trms[1:l .!= i]) : 1
+            push!(ans, other*(dcoeff * t.nocoeff + t.coeff*diff(t.nocoeff,B)))
+        else
+            dt = diff(t,B)
+            push!(ans, dt*prod(trms[1:l .!= i]))
         end
-        return sympy_type_convert(sum(ans))
-    else
-        dcoeff = A.coeff
-        sc = get_scalars(A.coeff)
-        if length(sc) == 1
-            s = sc[1]
-            dcoeff = diff(dcoeff,s) * diff(scalar_exprs[s],B)
-        elseif length(sc) > 0
-            error("Multiple scalars not implemented")
-        end
-        return sympy_type_convert(dcoeff * A.nocoeff + A.coeff * diff(A.nocoeff,B))
     end
+    return sympy_type_convert(sum(ans))
 end
 
 function diff(A::Sym,B::IndexedTensor)

@@ -22,3 +22,4 @@ Often, it's possible to exploit the symmetries of a problem to dramatically redu
 ## known bugs
 * self-contracted tensors aren't properly treated as scalars, but work fine without calling `contract_metric`
 * occasional dummy index bugs in diff -- probably fixed now
+* `replace_with_arrays` is very picky about what is up/down (even if necessary info is given)

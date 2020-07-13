@@ -3,7 +3,9 @@ module SymbolicTensors
 using SymPy
 using PyCall
 
-import SymPy: SymbolicObject,Sym,diff,jprint
+import SymPy: SymbolicObject,Sym,diff
+import SymPy: jprint,factor
+import SymPy: _convert
 
 import Base: show
 import Base: convert, promote_rule
@@ -20,39 +22,12 @@ export TensorSymmetry
 export @indices, @heads
 export tensor
 export diff
-export canon_bp, contract_metric
+export canon_bp, contract_metric, factor
 export get_tsymmetry
 export scalarIsEqual
+export replace_with_arrays
+export cse
 
-abstract type Tensor <: SymbolicObject end
-struct TensorIndex <: SymbolicObject
-    __pyobject__::PyCall.PyObject
-end
-struct TensorIndexType <: SymbolicObject
-    __pyobject__::PyCall.PyObject
-end
-struct TensorSymmetry <: SymbolicObject
-    __pyobject__::PyCall.PyObject
-end
-struct TensorHead <: SymbolicObject
-    __pyobject__::PyCall.PyObject
-end
-
-#struct TensScalar <: Tensor
-#    var::Sym;
-#    expr::Sym;
-#    __pyobject__::PyCall.PyObject;
-#end
-
-struct TensMul <: Tensor
-    __pyobject__::PyCall.PyObject
-end
-struct TensAdd <: Tensor
-    __pyobject__::PyCall.PyObject
-end
-struct IndexedTensor <: Tensor
-    __pyobject__::PyCall.PyObject
-end
 
 const tensor = PyCall.PyNULL()
 const toperations = PyCall.PyNULL()
@@ -65,29 +40,10 @@ function __init__()
 #    copy!(toperations,PyCall.pyimport_conda("sympy.tensor.toperations","sympy"))
 end
 
-function sympy_type_convert(pyexp)
-    if typeof(pyexp) in [Sym, PyObject]
-        cname = pyexp.__class__.__name__
-        if cname == "TensMul"
-            return convert(TensMul,pyexp)
-        elseif cname == "TensAdd"
-            return convert(TensAdd,pyexp)
-        elseif cname == "Tensor"
-            return convert(IndexedTensor,pyexp)
-        elseif cname == "TensorSymmetry"
-            return convert(TensorSymmetry,pyexp)
-        elseif cname == "Zero"
-            return 0
-        else
-            return pyexp
-        end
-    else
-        return pyexp
-    end
-end
-
+include("types.jl")
 include("tensor.jl")
 include("indices.jl")
 include("derivatives.jl")
+include("quoting.jl")
 
 end

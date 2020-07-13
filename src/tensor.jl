@@ -100,6 +100,18 @@ function Base.show(io::IO, ::MIME"text/plain", t::T) where {T <: Tensor}
     end
     return nothing
 end
+function Base.show(io::IO, ::MIME"text/latex", t::T) where {T <: Tensor}
+    print(io, sympy.latex(t.__pyobject__, mode="equation*"))
+    sc = get_scalars(t)
+    if length(sc) > 0
+        println(io,"")
+        for s in sc
+            print(io, sympy.latex(sympy.Eq(s,scalar_exprs[s]), mode="equation*"))
+            println(io,"")
+        end
+    end
+    return nothing
+end
 function Base.show(io::IO, ::MIME"text/plain", s::TensorSymmetry)
     if s.__pyobject__.__class__.__name__ == "TensorSymmetry"
         print(io, pycall(s.__pyobject__.__repr__,String))
@@ -118,6 +130,17 @@ function Base.show(io::IO, ::MIME"text/plain", s::SymbolicObject)
         end
     end
 end
+function Base.show(io::IO, ::MIME"text/latex", s::SymbolicObject)
+    print(io, sympy.latex(s, mode="equation*"))
+    sc = get_scalars(s)
+    if length(sc) > 0
+        println(io,"")
+        for s in sc
+            print(io, sympy.latex(sympy.Eq(s,scalar_exprs[s]), mode="equation*"))
+            println(io,"")
+        end
+    end
+end
 #function Base.show(io::IO,  t::TensScalar)
 #    show(io,t.expr)
 #    print(io,",")
@@ -129,13 +152,41 @@ TensAdd(s::TensAdd) = s
 TensMul(s::TensMul) = s
 (t::TensMul)(ics::TensorIndex...) = convert(TensMul,t.__pyobject__(ics...))
 (t::TensAdd)(ics::TensorIndex...) = convert(TensAdd,t.__pyobject__(ics...))
-function terms(s::T) where T <: Tensor
+function terms(s::TensMul)
     sp = getproperty(PyCall.PyObject(s),:split)
     ret = []
     for x in pycall(sp,PyCall.PyObject)
         push!(ret,sympy_type_convert(x))
     end
     return ret
+end
+function terms(s::TensAdd)
+    sp = getproperty(PyCall.PyObject(s),:args)
+    ret = []
+    for x in sp
+        push!(ret,sympy_type_convert(x))
+    end
+    return ret
+end
+
+function replace_with_arrays(t::T, d::Dict) where {T <: SymbolicObject}
+    sc = get_scalars(t)
+    pydict = Dict([ k.__pyobject__ => v for (k,v) in d])
+    pyexp = t.__pyobject__
+    for s in sc
+        pyexp = pyexp.subs(s,replace_with_arrays(scalar_exprs[s],d))
+    end
+    return sympy_type_convert(pyexp)
+end
+function replace_with_arrays(t::T, d::Dict) where {T <: Tensor}
+    sc = get_scalars(t)
+    pydict = Dict([ k.__pyobject__ => v for (k,v) in d])
+    pyexp = t.__pyobject__
+    for s in sc
+        pyexp = pyexp.subs(s,replace_with_arrays(scalar_exprs[s],d))
+    end
+    pyexp = pyexp.replace_with_arrays(pydict)
+    return sympy_type_convert(pyexp)
 end
 
 function Base.:+(A::T ,B::U) where {T <: Tensor, U <: SymbolicObject}
@@ -158,7 +209,6 @@ function Base.getproperty(A::TensorSymmetry, k::Symbol)
 end
 
 function Base.:*(A::T ,B::U) where {T <: Tensor, U <: Tensor}
-    global scalars
     pyexp = A.__pyobject__*B.__pyobject__
     inds = pycall(getproperty(pyexp,:get_free_indices),Array{TensorIndex})
     if length(inds) == 0
@@ -172,15 +222,19 @@ function Base.:*(A::T ,B::U) where {T <: Number, U <: Tensor}
     pyexp = A*B.__pyobject__
     return convert(TensMul,pyexp)
 end
-function Base.:*(A::T ,B::U) where {T <: Sym, U <: Tensor}
+function Base.:*(A::T ,B::U) where {T <: SymbolicObject, U <: Tensor}
     pyexp = A*B.__pyobject__
     return convert(TensMul,pyexp)
 end
-function Base.:*(B::U,A::T) where {T <: Sym, U <: Tensor}
+function Base.:*(B::U,A::T) where {T <: Number, U <: Tensor}
     pyexp = A*B.__pyobject__
     return convert(TensMul,pyexp)
 end
 function Base.:/(B::U,A::T) where {T <: Number, U <: Tensor}
+    pyexp = B.__pyobject__/A
+    return sympy_type_convert(pyexp)
+end
+function Base.:/(B::U,A::T) where {T <: SymbolicObject, U <: Tensor}
     pyexp = B.__pyobject__/A
     return sympy_type_convert(pyexp)
 end
@@ -281,4 +335,8 @@ function contract_metric(t::T,metric::TensorHead) where T <: Tensor
         end
     end
     return sympy_type_convert(pyexp+0)
+end
+
+function factor(t::T) where T <: Tensor
+    return sympy_type_convert(SymPy.factor(convert(Sym,t.__pyobject__)))
 end
