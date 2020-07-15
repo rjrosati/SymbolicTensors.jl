@@ -26,7 +26,7 @@ g = 4*δ(-μ,-ν)/(1+x(μ)*x(ν)*δ(-μ,-ν))
 
 # compute the christoffel symbols
 Γ = (diff(g(-μ,-ν),x(σ)) - diff(g(-ν,-σ),x(μ)) + diff(g(-σ,-μ),x(ν)))/2
-Γ = factor(contract_metric(contract_metric(canon_bp(Γ),spacetime.metric),spacetime.delta))
+Γ = factor(contract_metric(canon_bp(Γ),spacetime.metric))
 
 # convert \Gamma to Array{Sym}
 xarr = symbols("x y",real=true)
