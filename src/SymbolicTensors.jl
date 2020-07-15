@@ -4,7 +4,7 @@ using SymPy
 using PyCall
 
 import SymPy: SymbolicObject,Sym,diff
-import SymPy: jprint,factor
+import SymPy: jprint,factor,simplify
 import SymPy: _convert
 
 import Base: show
@@ -22,11 +22,12 @@ export TensorSymmetry
 export @indices, @heads
 export tensor
 export diff
-export canon_bp, contract_metric, factor
+export canon_bp, contract_metric, factor, simplify
 export get_tsymmetry
 export scalarIsEqual
 export replace_with_arrays
 export Quote
+export get_christoffel, get_riemann
 
 
 
@@ -35,6 +36,8 @@ include("tensor.jl")
 include("indices.jl")
 include("derivatives.jl")
 include("quoting.jl")
+include("gr.jl")
+include("replace.jl")
 
 const tensor = PyCall.PyNULL()
 const toperations = PyCall.PyNULL()

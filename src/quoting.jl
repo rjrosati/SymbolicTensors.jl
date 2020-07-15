@@ -54,7 +54,7 @@ end
 # QuoteArr
 function Quote(ex::Array{Sym})
     fnbody=Expr(:block)
-    sh = ex.shape
+    sh = size(ex)
     push!(fnbody.args,:(reshape([$(Quote.(ex)...)],$sh)))
     # possibly improve this with alg at https://github.com/symengine/SymEngine.jl/pull/114
     return fnbody

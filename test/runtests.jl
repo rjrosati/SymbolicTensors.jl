@@ -65,7 +65,7 @@ using Test
         @indices field i j k
         A = TensorHead("A",[field])
         field.set_metric(field.delta)
-        @test replace_with_arrays(A(i)*A(j)*field.metric(-i,-j), Dict(field.metric(-i,-j)=>[1 0 ; 0 1], A(i)=>[0,4] )) == 16
+        @test replace_with_arrays(A(i)*A(j)*field.metric(-i,-j), Dict(field.delta(-i,-j)=>[1 0 ; 0 1], A(i)=>[0,4] )) == 16
     end
 
     @testset "quoting" begin
@@ -94,7 +94,7 @@ using Test
         arr = [a^2,b^2+a^2,3c^2]
         cse_arr = sympy.cse(arr)
         @test equalQuotes(Quote(arr),quote
-            reshape([a ^ 2, a ^ 2 + b ^ 2, __prod__(3, c ^ 2)], (3, 1))
+            reshape([a ^ 2, a ^ 2 + b ^ 2, __prod__(3, c ^ 2)], (3,))
         end)
         @test equalQuotes(Quote(cse_arr),quote
             x0 = a ^ 2

@@ -34,7 +34,7 @@ function SymPy._convert(::Val{:MutableDenseNDimArray}, x)
 end
 
 function sympy_type_convert(pyexp)
-    if typeof(pyexp) in [Sym, PyObject]
+    if typeof(pyexp) in  [Sym,PyObject]
         cname = pyexp.__class__.__name__
         if cname == "TensMul"
             return convert(TensMul,pyexp)
@@ -48,6 +48,12 @@ function sympy_type_convert(pyexp)
             return convert(Array{Sym},pyexp)
         elseif cname == "MutableDenseNDimArray"
             return convert(Array{Sym},pyexp)
+        elseif cname == "ImmutableDenseNDimArray"
+            if typeof(pyexp) == Sym
+                return pyexp.__pyobject__.tolist()
+            else
+                return pyexp.tolist()
+            end
         elseif cname == "Zero"
             return 0
         elseif cname == "Half"

@@ -161,25 +161,6 @@ function terms(s::T) where T <: Union{TensAdd,TensMul}
     return ret
 end
 
-function replace_with_arrays(t::T, d::Dict) where {T <: SymbolicObject}
-    sc = get_scalars(t)
-    pydict = Dict([ k.__pyobject__ => v for (k,v) in d])
-    pyexp = t.__pyobject__
-    for s in sc
-        pyexp = pyexp.subs(s,replace_with_arrays(scalar_exprs[s],d))
-    end
-    return sympy_type_convert(pyexp)
-end
-function replace_with_arrays(t::T, d::Dict) where {T <: Tensor}
-    sc = get_scalars(t)
-    pydict = Dict([ k.__pyobject__ => v for (k,v) in d])
-    pyexp = t.__pyobject__
-    for s in sc
-        pyexp = pyexp.subs(s,replace_with_arrays(scalar_exprs[s],d))
-    end
-    pyexp = pyexp.replace_with_arrays(pydict)
-    return sympy_type_convert(pyexp)
-end
 
 function Base.:+(A::T ,B::U) where {T <: Tensor, U <: SymbolicObject}
     pyexp =  A.__pyobject__+B.__pyobject__
@@ -275,7 +256,7 @@ function canon_bp(s::Sym)
             subs[ss] = canon_bp(scalar_exprs[ss])
         end
     end
-    pyexp = tensor.canon_bp(s)
+    pyexp = s
     for k in keys(subs)
         if typeof(subs[k]) != TensMul
             pyexp = pyexp.subs(k,subs[k])
@@ -335,4 +316,7 @@ end
 
 function factor(t::T) where T <: Tensor
     return sympy_type_convert(SymPy.factor(convert(Sym,t.__pyobject__)))
+end
+function simplify(t::T) where T <: Tensor
+    return sympy_type_convert(SymPy.simplify(convert(Sym,t.__pyobject__)))
 end
