@@ -1,6 +1,7 @@
 using SymbolicTensors
 using SymPy
 using Test
+using LinearAlgebra
 
 @testset "SymbolicTensors.jl" begin
     @testset "types" begin
@@ -43,7 +44,7 @@ using Test
         @test diff(A(i),A(-j)) == field.metric(i,j)
         g = 1/(1+A(i)*A(-i))^2 * field.delta(-i,-j)
         gg = diff(g(-i,-j),A(k))
-        @test diff(field.delta(i,j),A(k)) == 0
+        @test diff(field.delta(-i,-j),A(k)) == 0
         # product rule w/ scalar chain rule
         @test scalarIsEqual( diff( A(i)*A(-i)*A(j), A(k)),
             A(i)*A(-i)*field.metric(j,-k) + 2*A(j)*A(-k) ,field.metric)
@@ -104,5 +105,74 @@ using Test
             x0 = a ^ 2
             reshape([x0, x0 + b ^ 2, __prod__(3, c ^ 2)], (3, 1))
         end))
+    end
+    @testset "Riemann scalar computations" begin
+        field = TensorIndexType("field","f")
+        @indices field i j k l m n o
+        F = TensorHead("F",[field])
+        δ = field.delta
+
+        simp(x) = contract_metric(canon_bp(x),field.metric)
+
+        α = symbols("α",positive=true)
+        g = 6 * α * δ(-i,-j) / (1-F(i)*F(j)*δ(-i,-j))^2
+        gg = diff(g(-i,-j),F(k))
+        gg = simp(gg)
+
+        h = (gg(-i,-j,-k) - gg(-j,-k,-i) + gg(-k,-i,-j))/2
+        h =  h(-i,-j,-k)
+        h = simp(h)
+
+        dh = diff(h(-i,-j,-k),F(l))
+        dh = simp(dh)
+
+        hh = (field.metric(m,n)*h(-m,-i,-j))*h(-n,-k,-l)
+        hh = simp(hh)
+
+        Riemann = dh(-i,-l,-j,-k) - dh(-i,-k,-l,-j) + hh(-j,-k,-i,-l) - hh(-j,-l,-i,-k)
+        Riemann = simp(Riemann)
+
+        Ric = Riemann(-i,-j,-k,-l)*field.metric(i,k)
+        Ric = simp(Ric)
+
+        R = Ric(-i,-j)*field.metric(j,i)
+        R = simp(R)
+
+        ## turn into arrays
+        vars = symbols("x y z",real=true)
+        x,y,z = vars
+        d = length(vars)
+        repl = Dict{Any,Any}(F(m) => vars, field.delta(-m,-n) => Matrix{Int64}(I,d,d))
+        garr = simplify(replace_with_arrays(g(-i,-j),repl))
+
+        repl[field] = garr
+        #repl[field.metric(m,-n)] = Matrix{Int64}(I,d,d)
+        harr = factor.(replace_with_arrays(h,repl))
+        dharr = factor.(replace_with_arrays(dh,repl))
+        hharr = factor.(replace_with_arrays(hh,repl))
+        Rarr = factor(replace_with_arrays(R,repl))
+
+        testpt = Dict(x=>0.1,y=>-0.8,z=>0.05,α=>1)
+        @test float(subs(harr[1,1,1],testpt)) ≈ float(subs(-12*x / (-1+x^2+y^2+z^2)^3,testpt))
+        @test float(subs(dharr[1,1,1,1],testpt)) ≈ float(subs(12*(1+5*x^2 - y^2 - z^2) / (-1+x^2+y^2+z^2)^4,testpt))
+        @test float(subs(Rarr,testpt)) ≈ -4
+
+        h = get_christoffel(F,field,g)
+        Riemann = get_riemann(F,h,field,g)
+        Ric = Riemann(-i,-j,-k,-l)*field.metric(i,k)
+        Ric = simp(Ric)
+
+        R = Ric(-i,-j)*field.metric(j,i)
+        R = simp(R)
+        vars = symbols("x y z",real=true)
+        x,y,z = vars
+        d = length(vars)
+        repl = Dict{Any,Any}(F(m) => vars, field.delta(-m,-n) => Matrix{Int64}(I,d,d))
+        garr = simplify(replace_with_arrays(g(-i,-j),repl))
+
+        repl[field] = garr
+        #repl[field.metric(m,-n)] = Matrix{Int64}(I,d,d)
+        Rarr = factor(replace_with_arrays(R,repl))
+        @test float(subs(Rarr,testpt)) ≈ -4
     end
 end

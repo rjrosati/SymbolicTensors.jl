@@ -10,7 +10,6 @@ TensorIndexType(name::AbstractString,dummy_name::AbstractString)::TensorIndexTyp
 TensorIndexType(name::Symbol,dummy_name::Symbol,dim::Int,metric_name::Symbol)::TensorIndexType = tensor.TensorIndexType(string(name),string(dummy_name),dim,string(metric_name))
 
 
-## Eg. A.norm() where A = [x 1; 1 x], say
 function Base.getproperty(A::IndexedTensor, k::Symbol)
     if k == :head
         m = getproperty(PyCall.PyObject(A),k)
@@ -27,16 +26,32 @@ function Base.getproperty(A::IndexedTensor, k::Symbol)
         return m
     elseif k in fieldnames(typeof(A))
         return getfield(A,k)
-    # else error?
+    else
+        M1 = getproperty(PyCall.PyObject(A), k)
+        M1
     end
 end
 
+function Base.getproperty(A::TensorIndex, k::Symbol)
+    if k == :is_up
+        m = getproperty(PyCall.PyObject(A),k)
+        return convert(Bool,m)
+    elseif k in fieldnames(typeof(A))
+        return getfield(A,k)
+    else
+        M1 = getproperty(PyCall.PyObject(A), k)
+        M1
+    end
+end
 function Base.getproperty(A::T, k::Symbol) where {T <: Tensor}
     if k == :free
         m = getproperty(PyCall.PyObject(A),k)
         return convert(Array{Tuple{TensorIndex,Int}},m)
     elseif k in fieldnames(typeof(A))
         return getfield(A,k)
+    else
+        M1 = getproperty(PyCall.PyObject(A), k)
+        M1
     # else error?
     end
 end
@@ -50,7 +65,9 @@ function Base.getproperty(A::TensorIndexType, k::Symbol)
         return m
     elseif k in fieldnames(typeof(A))
         return getfield(A,k)
-    # else error?
+    else
+        M1 = getproperty(PyCall.PyObject(A), k)
+        M1
     end
 end
 

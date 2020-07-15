@@ -1,23 +1,34 @@
-function get_christoffel(x::TensorHead,TIT::TensorIndexType,metric::T,invmetric::T ) where {T <: Tensor}
+function get_christoffel(x::TensorHead,TIT::TensorIndexType,metric::T ) where {T <: Tensor}
     """
-    returns christoffel symbols as ``Γ^a_{bc}``
+    returns christoffel symbols as ``Γ_{ijk}``
     """
+    @indices TIT i j k l
     g = metric
-    ginv = invmetric
-    @indices TIT a b c d
-    gg = diff(g(-c,-a),x(b))
-    h = ginv(d,c)*(gg(-c,-a,-b) + gg(-c,-b, -a) - gg(-a,-b,-c)) / 2
-    return h(a,-b,-c)
+
+    simp(x) = contract_metric(x,TIT.metric)
+    gg = diff(g(-i,-j),x(k))
+    gg = simp(gg)
+
+    h = (gg(-i,-j,-k) - gg(-j,-k,-i) + gg(-k,-i,-j))/2
+    h = simp(h)
+
+    return h(-i,-j,-k)
 end
 
 
 function get_riemann(x::TensorHead,h::S,TIT::TensorIndexType,metric::T) where {S <: Tensor, T <: Tensor}
     """
-    compute Riemann curvature tensor as ``R^α_{βγδ}``
+    compute Riemann curvature tensor as ``R_{ijkl}``
     """
+    @indices TIT i j k l m n
     g = metric
-    @indices TIT i j k l m
-    dh = diff(h(i,-j,-k),x(l))
-    R = dh(i,-l,-j,-k) - dh(i,-k,-j,-l) + h(i,-k,-m)*h(m,-l,-j) - h(i,-l,-m)*h(m,-k,-j)
-    return R
+    simp(x) = contract_metric(x,TIT.metric)
+    dh = diff(h(-i,-j,-k),x(l))
+    dh = simp(dh)
+
+    hh = (TIT.metric(m,n)*h(-m,-i,-j))*h(-n,-k,-l)
+    hh = simp(hh)
+
+    Riemann = dh(-i,-l,-j,-k) - dh(-i,-k,-l,-j) + hh(-j,-k,-i,-l) - hh(-j,-l,-i,-k)
+    return Riemann
 end

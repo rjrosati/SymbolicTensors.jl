@@ -17,10 +17,20 @@ function diff(A::IndexedTensor,B::IndexedTensor)
             j = A.free_indices[1]
             return A.head.index_types[1].metric(j,-i)
         end
-    else
-        if A.head == B.head.index_types[1].delta
+    elseif A.head == B.head.index_types[1].delta
+        tit = B.head.index_types[1]
+        i, j = A.free_indices
+        @indices tit m n
+        if i.is_up == false && j.is_up == false
             return 0
+        elseif i.is_up == false && j.is_up
+            return diff(tit.metric(j,m)*A.head(-i,-m),B)
+        elseif i.is_up && j.is_up == false
+            return diff(tit.metric(i,m)*A.head(-m,-j),B)
+        else
+            return diff(tit.metric(i,m)*tit.metric(j,n)*A.head(-m,-n),B)
         end
+    else
         println("Head1:", A.head)
         println("Head2:", B.head)
         error("Heads differ in a way not yet implemented")
@@ -55,13 +65,18 @@ function diff(A::TensMul,B::IndexedTensor)
                 dcoeff = diff(dcoeff,B)
             end
             other = l>1 ? prod(trms[1:l .!= i]) : 1
-            push!(ans, other*(dcoeff * t.nocoeff + t.coeff*diff(t.nocoeff,B)))
+            dt = (dcoeff * t.nocoeff + t.coeff*diff(t.nocoeff,B))
+            if dt != 0
+                push!(ans, dt*other)
+            end
         else
             dt = diff(t,B)
-            push!(ans, dt*prod(trms[1:l .!= i]))
+            if dt != 0
+                push!(ans, dt*prod(trms[1:l .!= i]))
+            end
         end
     end
-    return sympy_type_convert(sum(ans))
+    return sympy_type_convert(sum([a for a in ans if typeof(a) <: Tensor]))
 end
 
 function diff(A::Sym,B::IndexedTensor)
@@ -78,7 +93,8 @@ function diff(A::Sym,B::IndexedTensor)
         end
         return sum(values(dA))
     else
-        error("Can't differentiate non-scalar Sym objects wrt a tensor")
+        #error("Can't differentiate non-scalar Sym objects wrt a tensor")
+        return 0
     end
 end
 

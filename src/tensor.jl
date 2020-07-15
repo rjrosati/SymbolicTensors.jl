@@ -216,15 +216,15 @@ function Base.:/(B::U,A::T) where {T <: SymbolicObject, U <: Tensor}
     return sympy_type_convert(pyexp)
 end
 
-#function Base.isequal(a::SymPy.Sym,b::SymPy.Sym)
-#    sca = get_scalars(a)
-#    scb = get_scalars(b)
-#    if length(sca) > 0 && length(scb) > 0
-#        return scalar_exprs[only(sca)] == scalar_exprs[only(scb)]
-#    else
-#        return sympy.Eq(a,b) == true
-#    end
-#end
+function (==)( a::T ,b::Real) where T <: Tensor
+    return false
+end
+function (==)(a::T,b::U) where {T <: Tensor, U <: SymbolicObject}
+    return false
+end
+function (==)(a::T,b::U) where {T <: Tensor, U <: Tensor}
+    return a.__pyobject__ == b.__pyobject__
+end
 function scalarIsEqual(a::U,b::T,metric::TensorHead) where {T <: Union{SymbolicObject,Tensor}, U <: Union{SymbolicObject,Tensor}}
     sca = get_scalars(a)
     scb = get_scalars(b)
@@ -313,10 +313,13 @@ function contract_metric(t::T,metric::TensorHead) where T <: Tensor
     end
     return sympy_type_convert(pyexp+0)
 end
+contract_metric(x, metric::TensorHead) = x
+canon_bp(x) = x
 
 function factor(t::T) where T <: Tensor
     return sympy_type_convert(SymPy.factor(convert(Sym,t.__pyobject__)))
 end
+factor(x) = x
 function simplify(t::T) where T <: Tensor
     return sympy_type_convert(SymPy.simplify(convert(Sym,t.__pyobject__)))
 end
