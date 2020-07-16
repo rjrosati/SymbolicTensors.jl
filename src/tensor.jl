@@ -152,6 +152,7 @@ TensAdd(s::TensAdd) = s
 TensMul(s::TensMul) = s
 (t::TensMul)(ics::TensorIndex...) = convert(TensMul,t.__pyobject__(ics...))
 (t::TensAdd)(ics::TensorIndex...) = convert(TensAdd,t.__pyobject__(ics...))
+(t::IndexedTensor)(ics::TensorIndex...) = convert(IndexedTensor,t.__pyobject__(ics...))
 function terms(s::T) where T <: Union{TensAdd,TensMul}
     sp = getproperty(PyCall.PyObject(s),:args)
     ret = []
