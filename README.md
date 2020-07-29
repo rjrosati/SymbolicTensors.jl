@@ -10,7 +10,7 @@ Often, it's possible to exploit the symmetries of a problem to dramatically redu
 
 `SymbolicTensors.jl` is designed to exploit these simplifications to perform symbolic calculations and generate more efficient input into numeric tensor packages than you would write by hand. It based on `SymPy.jl`, `sympy.tensor.tensor`, `xTensor`, and `ITensors.jl`.
 
-See the talk about this package given at JuliaCon 2020 (link?)
+See the talk about this package given at JuliaCon 2020: https://www.youtube.com/watch?v=_b4JIv044GY
 
 ## Example calculations
 ```julia
