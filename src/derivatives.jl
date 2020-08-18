@@ -2,8 +2,9 @@
 diff(A::Real, B::T) where {T <: Tensor} = 0
 
 ## SymPy overrides to zero out Ints and Floats
-diff(::Int,::Sym...) = 0
-diff(::Float64,::Sym...) = 0
+
+SymPy.diff(::Int,::Sym...) = 0
+SymPy.diff(::Float64,::Sym...) = 0
 
 function diff(A::IndexedTensor,B::IndexedTensor)
     if length(B.free_indices) > 1
