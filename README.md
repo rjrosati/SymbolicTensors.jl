@@ -27,12 +27,19 @@ g = 4*δ(-μ,-ν)/(1+x(μ)*x(ν)*δ(-μ,-ν))^2
 # compute the christoffel symbols
 Γ = (diff(g(-μ,-ν),x(σ)) - diff(g(-ν,-σ),x(μ)) + diff(g(-σ,-μ),x(ν)))/2
 Γ = factor(contract_metric(canon_bp(Γ),spacetime.metric))
+```
+At this point `Γ` is a symbolic tensor expression, written in Einstein notation.
+It could represent 2 dimensional or 10,000 dimensional tensors in the same form -- this is one of the great advantages of working at the symbolic tensor level.
 
-# convert \Gamma to Array{Sym}
+We could manipulate `Γ` further, or convert it into an array.
+```julia
+# convert Γ to Array{Sym}
 xarr = symbols("x y",real=true)
 garr = replace_with_arrays(g,Dict(x(ρ) => xarr, spacetime.delta(-ρ,-η) => [1 0; 0 1]))
 Γarr = replace_with_arrays(Γ,Dict(x(ρ) => xarr, spacetime.delta(-ρ,-η) => [1 0; 0 1], spacetime => garr))
-
+```
+Now that we have an array in `Γarr`, `Quote` allows us to convert it into a native Julia function.
+```julia
 # Then Quote it and eval to a Julia function
 quot = Quote("Christoffel",Γarr,[ x for x in xarr])
 Christ = eval(quot)
