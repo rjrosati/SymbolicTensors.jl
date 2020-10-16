@@ -31,6 +31,8 @@ function diff(A::IndexedTensor,B::IndexedTensor)
         else
             return diff(tit.metric(i,m)*tit.metric(j,n)*A.head(-m,-n),B)
         end
+    elseif A.head.__pyobject__.name[end] == 'c'
+        return 0
     else
         println("Head1:", A.head)
         println("Head2:", B.head)

@@ -28,6 +28,7 @@ export scalarIsEqual
 export replace_with_arrays
 export Quote
 export get_christoffel, get_riemann
+export contract_delta
 
 
 

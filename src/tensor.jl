@@ -324,3 +324,10 @@ factor(x) = x
 function simplify(t::T) where T <: Tensor
     return sympy_type_convert(SymPy.simplify(convert(Sym,t.__pyobject__)))
 end
+
+function contract_delta(t::TensAdd, delta::TensorHead)
+    return sum([ contract_delta(ti,delta) for ti in terms(t) ])
+end
+function contract_delta(t::TensMul, delta::TensorHead)
+    
+end
