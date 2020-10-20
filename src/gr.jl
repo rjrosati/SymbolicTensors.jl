@@ -29,6 +29,6 @@ function get_riemann(x::TensorHead,h::S,TIT::TensorIndexType,metric::T) where {S
     hh = (TIT.metric(m,n)*h(-m,-i,-j))*h(-n,-k,-l)
     hh = simp(hh)
 
-    Riemann = dh(-i,-l,-j,-k) - dh(-i,-k,-l,-j) + hh(-j,-k,-i,-l) - hh(-j,-l,-i,-k)
+    Riemann = dh(-l,-j,-k,-i) - dh(-l,-i,-k,-j) + hh(-i,-k,-j,-l) - hh(-j,-k,-i,-l)
     return Riemann
 end
