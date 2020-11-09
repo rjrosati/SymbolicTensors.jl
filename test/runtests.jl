@@ -114,7 +114,7 @@ using LinearAlgebra
 
         simp(x) = contract_metric(canon_bp(x),field.metric)
 
-        α = symbols("α",positive=true)
+        α = symbols("a",positive=true)
         g = 6 * α * δ(-i,-j) / (1-F(i)*F(j)*δ(-i,-j))^2
         gg = diff(g(-i,-j),F(k))
         gg = simp(gg)
