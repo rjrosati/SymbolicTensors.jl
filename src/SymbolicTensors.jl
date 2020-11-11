@@ -27,7 +27,7 @@ export get_tsymmetry
 export scalarIsEqual
 export replace_with_arrays
 export Quote
-export get_christoffel, get_riemann
+export get_christoffel, get_riemann, get_ricci, get_ricci_scalar, get_einstein
 export contract_delta
 
 

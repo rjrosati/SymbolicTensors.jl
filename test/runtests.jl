@@ -138,6 +138,9 @@ using LinearAlgebra
         R = Ric(-i,-j)*field.metric(j,i)
         R = simp(R)
 
+        @test get_ricci(F, h, field, g) == Ric
+        @test get_ricci_scalar(F, h, field, g) == R
+
         ## turn into arrays
         vars = symbols("x y z",real=true)
         x,y,z = vars
@@ -164,6 +167,10 @@ using LinearAlgebra
 
         R = Ric(-i,-j)*field.metric(j,i)
         R = simp(R)
+
+        @test get_ricci(F, h, field, g) == Ric
+        @test get_ricci_scalar(F, h, field, g) == R
+
         vars = symbols("x y z",real=true)
         x,y,z = vars
         d = length(vars)
