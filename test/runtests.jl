@@ -138,8 +138,8 @@ using LinearAlgebra
         R = Ric(-i,-j)*field.metric(j,i)
         R = simp(R)
 
-        @test get_ricci(F, h, field, g) == Ric
-        @test get_ricci_scalar(F, h, field, g) == R
+        fnRicci = get_ricci(F, h, field, g)
+        fnR = get_ricci_scalar(F, h, field, g)
 
         ## turn into arrays
         vars = symbols("x y z",real=true)
@@ -154,32 +154,22 @@ using LinearAlgebra
         dharr = factor.(replace_with_arrays(dh,repl))
         hharr = factor.(replace_with_arrays(hh,repl))
         Rarr = factor(replace_with_arrays(R,repl))
+        fnRarr = factor(replace_with_arrays(fnR,repl))
+        fnRicciarr = factor.(replace_with_arrays(fnRicci,repl))
 
         testpt = Dict(x=>0.1,y=>-0.8,z=>0.05,α=>1)
         @test float(subs(harr[1,1,1],testpt)) ≈ float(subs(-12*x / (-1+x^2+y^2+z^2)^3,testpt))
         @test float(subs(dharr[1,1,1,1],testpt)) ≈ float(subs(12*(1+5*x^2 - y^2 - z^2) / (-1+x^2+y^2+z^2)^4,testpt))
         @test float(subs(Rarr,testpt)) ≈ -4
+        # exact tensor expressions will definitely differ, let's just check them numerically
+        @test float(subs(fnRarr,testpt)) ≈ -4
+        @test float(subs(fnRicciarr[1,1],testpt)) ≈ -66.2492
+        @test float(subs(fnRicciarr[2,2],testpt)) ≈ -66.2492
+        @test float(subs(fnRicciarr[3,3],testpt)) ≈ -66.2492
+        @test float(subs(fnRicciarr[1,2],testpt)) ≈ 0
+        @test float(subs(fnRicciarr[1,3],testpt)) ≈ 0
+        @test float(subs(fnRicciarr[2,3],testpt)) ≈ 0
 
-        h = get_christoffel(F,field,g)
-        Riemann = get_riemann(F,h,field,g)
-        Ric = Riemann(-i,-j,-k,-l)*field.metric(i,k)
-        Ric = simp(Ric)
 
-        R = Ric(-i,-j)*field.metric(j,i)
-        R = simp(R)
-
-        @test get_ricci(F, h, field, g) == Ric
-        @test get_ricci_scalar(F, h, field, g) == R
-
-        vars = symbols("x y z",real=true)
-        x,y,z = vars
-        d = length(vars)
-        repl = Dict{Any,Any}(F(m) => vars, field.delta(-m,-n) => Matrix{Int64}(I,d,d))
-        garr = simplify(replace_with_arrays(g(-i,-j),repl))
-
-        repl[field] = garr
-        #repl[field.metric(m,-n)] = Matrix{Int64}(I,d,d)
-        Rarr = factor(replace_with_arrays(R,repl))
-        @test float(subs(Rarr,testpt)) ≈ -4
     end
 end

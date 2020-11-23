@@ -40,7 +40,7 @@ function get_ricci(x::TensorHead, h::S, TIT::TensorIndexType, metric::T) where {
     @indices TIT i j k l
     g = metric
     Riemann = get_riemann(x, h, TIT, metric)
-    Ricci = Riemann(-i, -j, -k, -l) * g.metric(i,k)
+    Ricci = Riemann(-i, -j, -k, -l) * TIT.metric(i,k)
     return Ricci
 end
 
@@ -51,7 +51,7 @@ function get_ricci_scalar(x::TensorHead, h::S, TIT::TensorIndexType, metric::T) 
     @indices TIT i j
     g = metric
     Ricci = get_ricci(x, h, TIT, metric)
-    R = Ricci(-i,-j)*g.metric(j,i)
+    R = Ricci(-i,-j)*TIT.metric(j,i)
     return R
 end
 
@@ -63,7 +63,7 @@ function get_einstein(x::TensorHead, h::S, TIT::TensorIndexType, metric::T) wher
     g = metric
     R = get_ricci_scalar(x, h, TIT, metric)
     Ricci = get_ricci(x, h, TIT, metric)
-    return Ricci - 1/2(contract_metric(x, TIT.metric)) * R
+    return Ricci(-i,-j) - 1/2*g(-i,-j)*R
 end
 
 
