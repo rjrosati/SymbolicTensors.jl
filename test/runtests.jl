@@ -164,9 +164,9 @@ using LinearAlgebra
         @test float(subs(Rarr,testpt)) ≈ -4
         # exact tensor expressions will definitely differ, let's just check them numerically
         @test float(subs(fnRarr,testpt)) ≈ -4
-        @test float(subs(fnRicciarr[1,1],testpt)) ≈ -66.2492
-        @test float(subs(fnRicciarr[2,2],testpt)) ≈ -66.2492
-        @test float(subs(fnRicciarr[3,3],testpt)) ≈ -66.2492
+        @test float(subs(fnRicciarr[1,1],testpt)) ≈ -66.2492 rtol=0.02
+        @test float(subs(fnRicciarr[2,2],testpt)) ≈ -66.2492 rtol=0.02
+        @test float(subs(fnRicciarr[3,3],testpt)) ≈ -66.2492 rtol=0.02
         @test float(subs(fnRicciarr[1,2],testpt)) ≈ 0
         @test float(subs(fnRicciarr[1,3],testpt)) ≈ 0
         @test float(subs(fnRicciarr[2,3],testpt)) ≈ 0
