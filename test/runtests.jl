@@ -149,7 +149,7 @@ using LinearAlgebra
         garr = simplify(replace_with_arrays(g(-i,-j),repl))
 
         repl[field] = garr
-        repl[g(i,j)] = inv(garr)
+        repl[field.metric(i,j)] = inv(garr)
         #repl[field.metric(m,-n)] = Matrix{Int64}(I,d,d)
         harr = factor.(replace_with_arrays(h,repl))
         dharr = factor.(replace_with_arrays(dh,repl))
