@@ -45,9 +45,9 @@ function sympy_type_convert(pyexp)
         elseif cname == "TensorSymmetry"
             return convert(TensorSymmetry,pyexp)
         elseif cname == "MutableDenseMatrix"
-            return convert(Array{Sym},pyexp)
+            return pyexp.tolist()
         elseif cname == "MutableDenseNDimArray"
-            return convert(Array{Sym},pyexp)
+            return pyexp.tolist()
         elseif cname == "ImmutableDenseNDimArray"
             if typeof(pyexp) == Sym
                 return pyexp.__pyobject__.tolist()

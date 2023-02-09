@@ -95,15 +95,15 @@ using LinearAlgebra
         arr = [a^2,b^2+a^2,3c^2]
         cse_arr = sympy.cse(arr)
         @test equalQuotes(Quote(arr),quote
-            reshape([a ^ 2, a ^ 2 + b ^ 2, __prod__(3, c ^ 2)], (3,))
+            reshape([a ^ 2, a ^ 2 + b ^ 2, SymPy.__PROD__(3, c ^ 2)], (3,))
         end)
         @test equalQuotes(Quote(cse_arr),quote
             x0 = a ^ 2
-            reshape([x0, x0 + b ^ 2, __prod__(3, c ^ 2)], (3, 1))
+            reshape([x0, x0 + b ^ 2, SymPy.__PROD__(3, c ^ 2)], (3, 1))
         end)
         @test equalQuotes(Quote("_A",cse_arr,[a,b,c]),:(function _A(a, b, c)
             x0 = a ^ 2
-            reshape([x0, x0 + b ^ 2, __prod__(3, c ^ 2)], (3, 1))
+            reshape([x0, x0 + b ^ 2, SymPy.__PROD__(3, c ^ 2)], (3, 1))
         end))
     end
     @testset "Riemann scalar computations" begin

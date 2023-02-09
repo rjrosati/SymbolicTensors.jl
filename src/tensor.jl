@@ -119,6 +119,7 @@ function Base.show(io::IO, ::MIME"text/plain", s::TensorSymmetry)
         print(io, s.__pyobject__)
     end
 end
+#=
 function Base.show(io::IO, ::MIME"text/plain", s::SymbolicObject)
     print(io, sympy.pretty(s))
     sc = get_scalars(s)
@@ -141,6 +142,7 @@ function Base.show(io::IO, ::MIME"text/latex", s::SymbolicObject)
         end
     end
 end
+=#
 #function Base.show(io::IO,  t::TensScalar)
 #    show(io,t.expr)
 #    print(io,",")
